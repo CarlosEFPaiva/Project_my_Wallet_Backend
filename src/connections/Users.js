@@ -31,7 +31,7 @@ async function insertNewUser(name, email, password) {
     connection.query(`
     INSERT INTO users 
     (name, email, password) 
-    VALUES ($1, $2, $3)`, [name, email, password])
+    VALUES ($1, $2, $3);`, [name, email, password])
 }
 
 export {
