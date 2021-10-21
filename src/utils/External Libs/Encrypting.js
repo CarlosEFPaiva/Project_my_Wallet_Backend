@@ -4,11 +4,11 @@ function encryptPassword(password, salts) {
     return bcrypt.hashSync(password, salts);
 }
 
-function comparePassword(password, encryptedPassword) {
+function isPasswordCorrect(password, encryptedPassword) {
     return bcrypt.compareSync(password, encryptedPassword);
 }
 
 export {
     encryptPassword,
-    comparePassword,
+    isPasswordCorrect,
 }

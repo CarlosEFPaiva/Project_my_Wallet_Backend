@@ -10,6 +10,15 @@ function areSignUpInputsValid(newSignUp) {
     return !(schema.validate(newSignUp)).error;
 }
 
+function areSignInInputsValid(newSignUp) {
+    const schema = joi.object({
+        email: joi.string().email().required(),
+        password: joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/).required()
+    })
+    return !(schema.validate(newSignUp)).error;
+}
+
 export {
     areSignUpInputsValid,
+    areSignInInputsValid
 }
