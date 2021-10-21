@@ -9,7 +9,7 @@ async function insertNewSession(userId, token ) {
     )
 }
 
-async function getUserId(token) {
+async function getUserSession(token) {
     const result = await connection.query(`
         SELECT * FROM sessions
         WHERE token = $1;
@@ -17,7 +17,19 @@ async function getUserId(token) {
     return result.rows[0];
 }
 
+async function getUserName(token) {
+    const result = await connection.query(`
+        SELECT 
+            users.name 
+        FROM sessions
+        JOIN users ON users.id = sessions.user_id
+        WHERE token = $1;
+    `, [token]);
+    return result.rows[0]?.name;
+}
+
 export {
     insertNewSession,
-    getUserId,
+    getUserSession,
+    getUserName
 }

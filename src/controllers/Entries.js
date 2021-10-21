@@ -1,6 +1,26 @@
-import { insertNewRecord } from "../connections/Records.js";
-import { getUserId } from "../connections/Sessions.js";
+import { getUserEntries, insertNewRecord } from "../connections/Records.js";
+import { getUserName, getUserSession } from "../connections/Sessions.js";
 import { areNewEntryInputsValid } from "../utils/External Libs/Validation.js";
+
+async function getUserNameAndEntries(req, res) {
+    const token = req.headers.authorization?.replace('Bearer ','');
+    if(!token) {
+        return res.status(401).send("Token is required for access");
+    }
+    try {
+        const userName = await getUserName(token);
+        if (!userName) {
+            return res.status(404).send("No session was found for that token");
+        }
+        const userEntries = await getUserEntries(token);
+        res.send({name: userName, entries: userEntries});
+    } catch (error) {
+        
+    }
+
+
+
+}
 
 async function postNewEntry(req, res) {
     const token = req.headers.authorization?.replace('Bearer ','');
@@ -17,7 +37,7 @@ async function postNewEntry(req, res) {
         return res.status(400).send("Error with inputs validation");
     }
     try {
-        const user = await getUserId(token);
+        const user = await getUserSession(token);
         if (!user) {
             return res.status(404).send("No session was found for that token");
         }
@@ -33,4 +53,5 @@ async function postNewEntry(req, res) {
 
 export {
     postNewEntry,
+    getUserNameAndEntries,
 }
