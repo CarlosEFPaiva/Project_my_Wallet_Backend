@@ -24,7 +24,8 @@ async function postSignIn(req, res) {
         res.send({token});
 
     } catch (error) {
-        res.sendStatus(500)
+        console.log(error);
+        res.sendStatus(500);
     }
 
 }

@@ -15,11 +15,9 @@ async function getUserNameAndEntries(req, res) {
         const userEntries = await getUserEntries(token);
         res.send({name: userName, entries: userEntries});
     } catch (error) {
-        
+        console.log(error);
+        res.sendStatus(500);
     }
-
-
-
 }
 
 async function postNewEntry(req, res) {

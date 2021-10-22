@@ -20,7 +20,8 @@ async function postNewSignUp(req, res) {
         await insertNewUser(name, email, encryptPassword(password, 10));
         res.sendStatus(201);
     } catch (error) {
-        res.sendStatus(500); 
+        console.log(error);
+        res.sendStatus(500);
     }
 }
 

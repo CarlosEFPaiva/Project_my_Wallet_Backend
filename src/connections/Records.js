@@ -9,7 +9,7 @@ async function getUserEntries(token) {
         records.value 
     FROM sessions 
     JOIN records ON records.user_id = sessions.user_id
-    WHERE sessions.token = $1;
+    WHERE sessions.token = $1 ORDER BY records.date DESC;
     `, [token]);
     return result.rows;
 }
