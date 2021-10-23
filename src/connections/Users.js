@@ -1,4 +1,4 @@
-import connection from "../database.js";
+import connection from "../database/database.js";
 
 async function getUsers(queries, limit) {
     const queriesObject = queries ? queries : {};

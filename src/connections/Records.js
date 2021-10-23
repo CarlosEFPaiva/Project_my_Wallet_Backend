@@ -1,4 +1,4 @@
-import connection from "../database.js";
+import connection from "../database/database.js";
 
 async function getUserEntries(token) {
     const result = await connection.query(`
