@@ -3,9 +3,7 @@ const connectionObject = {
     password: '123456',
     host: 'localhost',
     port: 5432,
-    database: 'my_wallet_project'
-}
-
-//In the future it'll be hidden from GitHub
+    database: 'my_wallet_project',
+};
 
 export default connectionObject;

@@ -11,4 +11,4 @@ function isPasswordCorrect(password, encryptedPassword) {
 export {
     encryptPassword,
     isPasswordCorrect,
-}
+};

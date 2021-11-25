@@ -1,21 +1,18 @@
-import express from "express";
-import cors from "cors";
-import { postNewSignUp } from "./controllers/SignUp.js";
-import { postSignIn } from "./controllers/SignIn.js";
-import { getUserNameAndEntries, postNewEntry } from "./controllers/Entries.js";
+import express from 'express';
+import cors from 'cors';
+
+import * as usersController from './controllers/usersController.js';
+import * as entriesController from './controllers/entriesController.js';
+import validateToken from './middleware/authorization.js';
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-//SIGN-UP
-app.post("/sign-up", postNewSignUp);
+app.post('/sign-up', usersController.postNewSignUp);
+app.post('/sign-in', usersController.postSignIn);
 
-//SIGN-IN
-app.post("/sign-in", postSignIn);
-
-//ENTRIES
-app.get("/entries", getUserNameAndEntries);
-app.post("/entries", postNewEntry);
+app.get('/entries', validateToken, entriesController.getUserNameAndEntries);
+app.post('/entries', validateToken, entriesController.postNewEntry);
 
 export default app;

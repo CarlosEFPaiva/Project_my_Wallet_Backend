@@ -6,4 +6,4 @@ function generateToken() {
 
 export {
     generateToken,
-}
+};
