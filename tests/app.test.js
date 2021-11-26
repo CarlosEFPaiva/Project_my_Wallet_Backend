@@ -4,7 +4,13 @@ import supertest from 'supertest';
 import app from '../src/app.js';
 import connection from '../src/database/database.js';
 import * as usersRepository from '../src/repositories/usersRepository.js';
+import * as sessionsRepository from '../src/repositories/sessionsRepository.js';
+import * as recordsRepository from '../src/repositories/recordsRepository.js';
+import * as fakeFactory from './utils/testVariablesFactory.js';
 import { encryptPassword } from '../src/utils/externalLibs/encrypting.js';
+
+const validUser = fakeFactory.getUser();
+const validToken = fakeFactory.getToken();
 
 afterAll(async () => {
     connection.end();
@@ -12,18 +18,20 @@ afterAll(async () => {
 
 describe('POST /sign-up', () => {
     beforeAll(async () => {
-        await usersRepository.insertNewUser({ name: 'TESTING', email: 'testing@testing.com', password: 'TESTING' });
+        await usersRepository.insertNewUser({
+            ...validUser,
+            email: validUser.email.toLocaleLowerCase(),
+        });
     });
 
     afterAll(async () => {
-        await connection.query('DELETE FROM users WHERE email = \'testing@testing.com\' OR email = \'notregistered@testing.com\';');
+        await connection.query('DELETE FROM users;');
     });
 
     it('Returns status 400 if inputs are invalid', async () => {
         const body = {
-            name: 'TESTING',
+            ...validUser,
             email: 'NOT AN EMAIL',
-            password: 'Testing123*',
         };
 
         const result = await supertest(app).post('/sign-up').send(body);
@@ -31,22 +39,12 @@ describe('POST /sign-up', () => {
     });
 
     it('Returns status 409 if email is already registered on Database (Case Insensitive)', async () => {
-        const body = {
-            name: 'TESTING',
-            email: 'TESTING@testing.com',
-            password: 'Testing123*',
-        };
-
-        const result = await supertest(app).post('/sign-up').send(body);
+        const result = await supertest(app).post('/sign-up').send(validUser);
         expect(result.status).toEqual(409);
     });
 
     it('Returns status 201 if inputs are valid and email is not registered on Database', async () => {
-        const body = {
-            name: 'TESTING',
-            email: 'notRegistered@testing.com',
-            password: 'Testing123*',
-        };
+        const body = fakeFactory.getUser();
 
         const result = await supertest(app).post('/sign-up').send(body);
         expect(result.status).toEqual(201);
@@ -55,19 +53,22 @@ describe('POST /sign-up', () => {
 
 describe('POST /sign-in', () => {
     beforeAll(async () => {
-        const encryptedPassword = encryptPassword('Testing123*', 10);
-        await connection.query(`INSERT INTO users (name, email, password) VALUES ('TESTING', 'testing@testing.com', '${encryptedPassword}');`);
+        const encryptedPassword = encryptPassword(validUser.password, 10);
+        await usersRepository.insertNewUser({
+            name: validUser.name,
+            email: validUser.email.toLocaleLowerCase(),
+            password: encryptedPassword,
+        });
     });
 
     afterAll(async () => {
-        await connection.query('DELETE FROM sessions USING users WHERE sessions.user_id = users.id AND users.email = \'testing@testing.com\'');
-        await connection.query('DELETE FROM users WHERE email = \'testing@testing.com\';');
+        await connection.query('DELETE FROM sessions; DELETE FROM users;');
     });
 
     it('Returns status 400 if inputs are invalid', async () => {
         const body = {
+            ...validUser,
             email: 'NOT AN EMAIL',
-            password: 'Testing123*',
         };
 
         const result = await supertest(app).post('/sign-in').send(body);
@@ -75,10 +76,7 @@ describe('POST /sign-in', () => {
     });
 
     it('Returns status 401 if email is not registered', async () => {
-        const body = {
-            email: 'notRegistered@testing.com',
-            password: 'Testing123*',
-        };
+        const body = fakeFactory.getUser();
 
         const result = await supertest(app).post('/sign-in').send(body);
         expect(result.status).toEqual(401);
@@ -86,8 +84,8 @@ describe('POST /sign-in', () => {
 
     it('Returns status 401 if password is incorrect', async () => {
         const body = {
-            email: 'testing@testing.com',
-            password: 'IncorrectPassword123*',
+            ...validUser,
+            password: fakeFactory.getStrongPassword(),
         };
 
         const result = await supertest(app).post('/sign-in').send(body);
@@ -95,10 +93,7 @@ describe('POST /sign-in', () => {
     });
 
     it('Returns status 200 and a token if inputs are valid', async () => {
-        const body = {
-            email: 'testing@testing.com',
-            password: 'Testing123*',
-        };
+        const body = validUser;
 
         const result = await supertest(app).post('/sign-in').send(body);
         expect(result.status).toEqual(200);
@@ -108,21 +103,19 @@ describe('POST /sign-in', () => {
 
 describe('GET /entries', () => {
     beforeAll(async () => {
-        const exampleDate = '2004-10-03 09:30:00.000-03';
-        await connection.query('INSERT INTO users (name, email, password) VALUES (\'John Doe\', \'testing@testing.com\', \'TestingPassword\');');
-        await connection.query('INSERT INTO sessions (user_id, token) VALUES ((SELECT id FROM users WHERE email = \'testing@testing.com\'), \'TestingToken\');');
-        await connection.query(`
-        INSERT INTO records 
-            (user_id, date, description, type, value) 
-        VALUES 
-            ((SELECT id FROM users WHERE email = 'testing@testing.com'), '${exampleDate}', '1 gallon of gas', 0, 28000),
-            ((SELECT id FROM users WHERE email = 'testing@testing.com'), '${exampleDate}', 'Income from finished project', 1, 50);`);
+        const encryptedPassword = encryptPassword(validUser.password, 10);
+        const user = (await usersRepository.insertNewUser({
+            name: validUser.name,
+            email: validUser.email.toLocaleLowerCase(),
+            password: encryptedPassword,
+        })).rows[0];
+        await sessionsRepository.insertNewSession({ userId: user.id, token: validToken });
+        await recordsRepository.insertNewRecord(fakeFactory.getEntry(user.id));
+        await recordsRepository.insertNewRecord(fakeFactory.getEntry(user.id));
     });
 
     afterAll(async () => {
-        await connection.query('DELETE FROM records WHERE user_id = (SELECT id FROM users WHERE email = \'testing@testing.com\');');
-        await connection.query('DELETE FROM sessions WHERE user_id = (SELECT id FROM users WHERE email = \'testing@testing.com\');');
-        await connection.query('DELETE FROM users WHERE email = \'testing@testing.com\';');
+        await connection.query('DELETE FROM records; DELETE FROM sessions; DELETE FROM users;');
     });
 
     it('Returns status 401 if token is not sent', async () => {
@@ -131,51 +124,49 @@ describe('GET /entries', () => {
     });
 
     it('Returns status 404 if token is not registered in sessions Table', async () => {
-        const token = 'NOT REGISTERED';
+        const token = fakeFactory.getToken();
 
         const result = await supertest(app).get('/entries').set('Authorization', `Bearer ${token}`);
         expect(result.status).toEqual(404);
     });
 
     it("Returns status 200 and an object with atributes 'name' and 'entries' if inputs and token are valid", async () => {
-        const token = 'TestingToken';
+        const token = validToken;
 
         const result = await supertest(app).get('/entries').set('Authorization', `Bearer ${token}`);
         expect(result.status).toEqual(200);
-        expect(result.body).toHaveProperty('name', 'John Doe');
+        expect(result.body).toHaveProperty('name', validUser.name);
         expect(result.body.entries).toHaveLength(2);
     });
 });
 
 describe('POST /entries', () => {
     beforeAll(async () => {
-        await connection.query('INSERT INTO users (name, email, password) VALUES (\'John Doe\', \'testing@testing.com\', \'TestingPassword\');');
-        await connection.query('INSERT INTO sessions (user_id, token) VALUES ((SELECT id FROM users WHERE email = \'testing@testing.com\'), \'TestingToken\');');
+        const encryptedPassword = encryptPassword(validUser.password, 10);
+        const user = (await usersRepository.insertNewUser({
+            name: validUser.name,
+            email: validUser.email.toLocaleLowerCase(),
+            password: encryptedPassword,
+        })).rows[0];
+        await sessionsRepository.insertNewSession({ userId: user.id, token: validToken });
     });
 
     afterAll(async () => {
-        await connection.query('DELETE FROM records WHERE user_id = (SELECT id FROM users WHERE email = \'testing@testing.com\');');
-        await connection.query('DELETE FROM sessions WHERE user_id = (SELECT id FROM users WHERE email = \'testing@testing.com\');');
-        await connection.query('DELETE FROM users WHERE email = \'testing@testing.com\';');
+        await connection.query('DELETE FROM records; DELETE FROM sessions; DELETE FROM users;');
     });
 
     it('Returns status 401 if token is not sent', async () => {
-        const body = {
-            description: 'Arrascaeta Monthly Income',
-            type: 0,
-            value: 100000000,
-        };
+        const body = fakeFactory.getEntry();
 
         const result = await supertest(app).post('/entries').send(body);
         expect(result.status).toEqual(401);
     });
 
     it('Returns status 400 if inputs are invalid', async () => {
-        const token = 'TestingToken';
+        const token = validToken;
         const body = {
-            description: "Dunder Mifflin's ream of 20 pounds white bond paper",
+            ...fakeFactory.getEntry(),
             type: 'NOT A VALID TYPE',
-            value: 978,
         };
 
         const result = await supertest(app).post('/entries').set('Authorization', `Bearer ${token}`).send(body);
@@ -183,24 +174,16 @@ describe('POST /entries', () => {
     });
 
     it('Returns status 404 if token is invalid', async () => {
-        const token = 'NOT A VALID TOKEN';
-        const body = {
-            description: 'Trip to the Alderaan System',
-            type: 0,
-            value: 1000000,
-        };
+        const token = fakeFactory.getToken();
+        const body = fakeFactory.getEntry();
 
         const result = await supertest(app).post('/entries').set('Authorization', `Bearer ${token}`).send(body);
         expect(result.status).toEqual(404);
     });
 
     it('Returns status 201 if token and inputs are valid', async () => {
-        const token = 'TestingToken';
-        const body = {
-            description: 'Arrascaeta Monthly Income',
-            type: 0,
-            value: 100000000,
-        };
+        const token = validToken;
+        const body = fakeFactory.getEntry();
 
         const result = await supertest(app).post('/entries').set('Authorization', `Bearer ${token}`).send(body);
         expect(result.status).toEqual(201);

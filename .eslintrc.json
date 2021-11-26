@@ -34,6 +34,7 @@
                     "multiline": true
                 }
             }
-        ]
+        ],
+        "no-plusplus": "off"
     }
 }
