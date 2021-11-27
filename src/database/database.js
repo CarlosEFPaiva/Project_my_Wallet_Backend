@@ -1,7 +1,14 @@
 import pg from 'pg';
-import connectionObject from './ConnectionObject.js';
 
 const { Pool } = pg;
-const connection = new Pool(connectionObject);
+
+const connectionData = {
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false,
+    },
+};
+
+const connection = new Pool(connectionData);
 
 export default connection;

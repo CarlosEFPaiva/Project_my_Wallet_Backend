@@ -1,6 +1,6 @@
-import connection from "../database/database.js";
+import connection from '../database/database.js';
 
-async function getUserEntries(token) {
+async function getUserEntries({ token }) {
     const result = await connection.query(`
     SELECT 
         records.date,
@@ -14,16 +14,16 @@ async function getUserEntries(token) {
     return result.rows;
 }
 
-async function insertNewRecord({userId, date, description, type, value}) {
-    await connection.query(`
-        INSERT INTO records
+async function insertNewRecord({ userId, date, description, type, value }) {
+    return connection.query(
+        `INSERT INTO records
             (user_id, date, description, type, value) 
-        VALUES ($1, $2, $3, $4, $5);`,
-            [userId, date, description, type, value]
-    )
+        VALUES ($1, $2, $3, $4, $5) RETURNING *;`,
+        [userId, date, description, type, value],
+    );
 }
 
 export {
     insertNewRecord,
     getUserEntries,
-}
+};
