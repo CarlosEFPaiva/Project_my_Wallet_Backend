@@ -35,6 +35,13 @@
                 }
             }
         ],
-        "no-plusplus": "off"
+        "no-plusplus": "off",
+        "no-console": [
+            1,
+            { "allow": [
+                    "error"
+                ]
+            }
+        ]
     }
 }

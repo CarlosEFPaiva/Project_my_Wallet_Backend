@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
 
+import '../src/setup.js';
 import supertest from 'supertest';
 import app from '../src/app.js';
 import connection from '../src/database/database.js';
@@ -20,7 +21,7 @@ describe('POST /sign-up', () => {
     beforeAll(async () => {
         await usersRepository.insertNewUser({
             ...validUser,
-            email: validUser.email.toLocaleLowerCase(),
+            email: validUser.email.toLowerCase(),
         });
     });
 
@@ -56,7 +57,7 @@ describe('POST /sign-in', () => {
         const encryptedPassword = encryptPassword(validUser.password, 10);
         await usersRepository.insertNewUser({
             name: validUser.name,
-            email: validUser.email.toLocaleLowerCase(),
+            email: validUser.email.toLowerCase(),
             password: encryptedPassword,
         });
     });
@@ -106,7 +107,7 @@ describe('GET /entries', () => {
         const encryptedPassword = encryptPassword(validUser.password, 10);
         const user = (await usersRepository.insertNewUser({
             name: validUser.name,
-            email: validUser.email.toLocaleLowerCase(),
+            email: validUser.email.toLowerCase(),
             password: encryptedPassword,
         })).rows[0];
         await sessionsRepository.insertNewSession({ userId: user.id, token: validToken });
@@ -145,7 +146,7 @@ describe('POST /entries', () => {
         const encryptedPassword = encryptPassword(validUser.password, 10);
         const user = (await usersRepository.insertNewUser({
             name: validUser.name,
-            email: validUser.email.toLocaleLowerCase(),
+            email: validUser.email.toLowerCase(),
             password: encryptedPassword,
         })).rows[0];
         await sessionsRepository.insertNewSession({ userId: user.id, token: validToken });
