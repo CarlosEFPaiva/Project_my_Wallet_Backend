@@ -1,4 +1,4 @@
-# Project_my_Wallet_Backend
+# My Wallet - Backend
 
 ## About this Project
 
