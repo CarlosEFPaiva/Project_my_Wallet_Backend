@@ -32,7 +32,7 @@ To run this project in the development mode, you'll need to have a basic environ
 
 The following scripts are set for better using of the app:
 
-- dev -> Will start the app locally, setting to use the development database. A Production database was not created due to a limitation in the number of databases a free user can have in Heroku.
+- start -> Will start the app locally, setting to use the development database. A Production database was not created due to a limitation in the number of databases a free user can have in Heroku.
 
 - test -> Will run the test files once, setting to use the testing database. Once the tests are complete, the database is erased and the connection ended.
 
