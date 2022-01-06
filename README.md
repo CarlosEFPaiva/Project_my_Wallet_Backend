@@ -4,7 +4,7 @@
 
 This project was developed as part of the Driven Web Full-Stack Bootcamp, a 6-month bootcamp where I started my journey as a web developer.
 
-It serves as the back-end for my-wallet-Project -> the front-end of this project can be found [here](https://github.com/CarlosEFPaiva/Project_My_Wallet_FrontEnd), and it's deployment can be found [here](https://project-my-wallet-front-end.vercel.app/).
+It serves as the back-end for my-wallet-Project -> the front-end of this project can be found [here](https://github.com/CarlosEFPaiva/Project_My_Wallet_FrontEnd), and its deployment can be found [here](https://project-my-wallet-front-end.vercel.app/).
 
 My-Wallet is an app where users can save their spending and income, all saved with their own login information and with a friendly interface. Its layout was developed exclusive for mobile applications.
 
